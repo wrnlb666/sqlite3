@@ -14,6 +14,12 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 
+# db for testing
+*.db
+
+# go executable used for unit testing(not using go test cause I am lazy)
+sqlite3
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
