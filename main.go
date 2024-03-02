@@ -7,13 +7,11 @@ package main
 */
 import "C"
 import (
-    "iter"
     "unsafe"
     "runtime"
 )
 
 type Sqlite3 C.sqlite3
-type Iterator func() iter.Seq2[string, string]
 
 func Open(filename string) (*Sqlite3, error) {
     // Cdb := &C.sqlite3{}

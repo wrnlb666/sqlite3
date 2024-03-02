@@ -21,12 +21,11 @@ static inline int sqlite3_exec_wrapper(sqlite3* db,
 */
 import "C"
 import (
-    "iter"
     "unsafe"
     "runtime/cgo"
 )
 
-type ExecCB func(argc int, iterator Iterator) bool
+type ExecCB func(row Row) int
 
 func (db *Sqlite3) Exec(sql string, cb ExecCB) error {
     Cdb := (*C.sqlite3)(db)
@@ -58,24 +57,20 @@ func go_sqlite3_exec_cb(callback C.uintptr_t, argc C.int, argv **C.char, col **C
     goCol := uintptr(unsafe.Pointer(col))
     ptrSize := uintptr(C.sizeof_uintptr_t)
 
-    iterator := func() iter.Seq2[string, string] {
-        return func(yield func(string, string) bool) {
-            for i := range goArgc {
-                offset := ptrSize * uintptr(i)
-                if !yield(
-                C.GoString(*(**C.char)(unsafe.Pointer(goCol + offset))),
-                C.GoString(*(**C.char)(unsafe.Pointer(goArgv + offset)))) {
-                    return
-                }
-            }
-        }
+    keys := make([]string, goArgc)
+    vals := make([]Elem, goArgc)
+    for i := range goArgc {
+        offset := ptrSize * uintptr(i)
+        keys[i] = C.GoString(*(**C.char)(unsafe.Pointer(goCol + offset)))
+        vals[i] = Elem(C.GoString(*(**C.char)(unsafe.Pointer(goArgv + offset))))
     }
 
-    r := goCallback(goArgc, iterator)
-    if r {
-        return C.int(0)
-    } else {
-        return C.int(1)
+    row := Row{
+        size:   goArgc,
+        fields: keys,
+        elems:  vals,
     }
+
+    return C.int(goCallback(row))
 }
 
