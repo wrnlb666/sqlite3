@@ -9,6 +9,7 @@ package main
 */
 import "C"
 import (
+    "fmt"
     // "unsafe"
     // "runtime"
 )
@@ -49,3 +50,13 @@ func (t *Table) Fields() []string {
     return t.names
 }
 
+func (t *Table) Row(r int) (Row, error) {
+    if r >= len(t.result) {
+        return Row{}, fmt.Errorf("index out of bounds")
+    }
+    return Row{
+        size:   len(t.names),
+        fields: t.names,
+        elems:  t.result[r],
+    }, nil
+}
