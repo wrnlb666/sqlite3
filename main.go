@@ -30,9 +30,11 @@ func Open(filename string) (*Sqlite3, error) {
 }
 
 func (db *Sqlite3) Close() error {
-    r := C.sqlite3_close((*C.sqlite3)(db))
+    godb := (*C.sqlite3)(db)
+    r := C.sqlite3_close(godb)
     if r != C.int(0) {
         return newError(r, "")
     }
+    runtime.SetFinalizer(godb, nil)
     return nil
 }
